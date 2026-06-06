@@ -27,14 +27,14 @@ propagate/
 ├── apps/
 │   ├── engine/             NestJS backend (ingestion, graph, WebSocket gateway)
 │   └── web/                Next.js frontend (floor plan SVG, schedule tables, editing)
-└── fixtures/               Sample data (dental clinic)
+└── samples/                Sample data (dental clinic)
 ```
 
 ## Stack
 
 - **Engine:** NestJS, TypeScript
 - **Web:** Next.js (App Router, React 19), Tailwind CSS, Zustand
-- **Ingestion:** web-ifc (IFC), exceljs (Excel), pdfreader (PDF)
+- **Ingestion:** web-ifc (IFC), exceljs (Excel), pdf-parse (PDF)
 - **Storage:** Firebase Storage (uploaded files), Redis (graph cache), LanceDB (vector search)
 - **Real-time:** Socket.io (WebSockets)
 - **Cross-ref engine:** Framework-free pure TypeScript, deterministic, no LLM dependency
@@ -52,13 +52,62 @@ pnpm test           # run all tests
 
 Copy `.env.example` to `.env` and fill in the values as needed.
 
+## Sample Data
+
+The `samples/` directory contains a dental clinic dataset used for development and testing:
+
+| File | Format | Contents |
+|---|---|---|
+| `dental-clinic.ifc` | IFC 2x3 | Floor plan with 17 rooms, 20 doors, 10 walls |
+| `room-schedule.xlsx` | Excel | Room finish schedule (17 rows) |
+| `door-schedule.xlsx` | Excel | Door schedule (19 rows — D-108 intentionally missing) |
+| `sheet-index.xlsx` | Excel | Sheet index (4 sheets) |
+| `room-schedule.pdf` | PDF | PDF version of the room schedule |
+
+Four mismatches are seeded across these files to demonstrate cross-document detection:
+
+1. **Name drift:** Floor plan says "OPERATORY 1" (room 102), room schedule says "OP 1"
+2. **Missing reference:** Door D-108 exists in the IFC model but is absent from the door schedule
+3. **Property mismatch:** Floor plan has 180 SF for STERILIZATION (room 106), room schedule says 165 SF
+4. **Rename drift:** Floor plan says "IMAGING" (room 107), sheet index A102 references "X-RAY"
+
+### Regenerating sample files
+
+The sample files are checked into the repo so tests work immediately after cloning. To regenerate them from scratch:
+
+```bash
+npx tsx samples/generate-ifc.ts          # generates dental-clinic.ifc
+npx tsx samples/generate-schedules.ts    # generates *.xlsx files
+npx tsx samples/generate-pdf.ts          # generates room-schedule.pdf
+```
+
+## Ingestion API
+
+Upload a file to parse it into a typed `DocumentEnvelope`:
+
+```bash
+# IFC model → FloorPlan
+curl -X POST http://localhost:3001/api/upload -F file=@samples/dental-clinic.ifc
+
+# Excel schedule (type inferred from filename)
+curl -X POST http://localhost:3001/api/upload -F file=@samples/room-schedule.xlsx
+
+# Explicit schedule type
+curl -X POST http://localhost:3001/api/upload?scheduleType=door -F file=@samples/door-schedule.xlsx
+
+# PDF schedule
+curl -X POST http://localhost:3001/api/upload -F file=@samples/room-schedule.pdf
+```
+
+Supported formats: `.ifc`, `.xlsx`, `.xls`, `.pdf`. The engine detects file type by extension and routes to the appropriate parser.
+
 ## Architecture Highlights
 
 - The cross-reference engine (`packages/crossref`) is pure, testable, deterministic. It never calls an LLM.
 - The engine runs client-side for instant cascade visualization (<1ms latency). The backend keeps Redis in sync via WebSocket.
 - Two-layer matching: exact matching for IDs/numbers, fuzzy matching via LanceDB vectors for naming drift.
-- Sample data uses a dental/medical clinic (~18 rooms, ~20 doors) with 4 seeded mismatches to demonstrate the system on first load.
+- Sample data uses a dental/medical clinic (17 rooms, 20 doors) with 4 seeded mismatches to demonstrate the system on first load.
 
 ## Current Status
 
-Monorepo scaffold is in place with shared types, the cross-reference engine (exact matching), NestJS backend modules, and the Next.js frontend shell. Ingestion parsers, sample data, and the full UI are next.
+Monorepo scaffold, shared types, cross-reference engine (exact matching), ingestion parsers (IFC, Excel, PDF), sample data, NestJS backend with upload API, and the Next.js frontend shell are in place. The full UI and real-time cascade visualization are next.
