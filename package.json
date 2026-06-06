@@ -1,0 +1,17 @@
+{
+  "name": "@propagate/root",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @propagate/engine dev & pnpm --filter @propagate/web dev",
+    "dev:engine": "pnpm --filter @propagate/engine dev",
+    "dev:web": "pnpm --filter @propagate/web dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint"
+  },
+  "engines": {
+    "node": ">=20",
+    "pnpm": ">=8"
+  }
+}
