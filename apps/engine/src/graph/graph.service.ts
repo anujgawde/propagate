@@ -3,10 +3,11 @@ import type {
   DocumentEnvelope,
   GraphState,
   Change,
+  PropagationTarget,
   FloorPlan,
   Schedule,
 } from "@propagate/contracts";
-import { buildGraph, checkConsistency } from "@propagate/crossref";
+import { buildGraph, checkConsistency, computePropagation } from "@propagate/crossref";
 
 @Injectable()
 export class GraphService {
@@ -41,6 +42,23 @@ export class GraphService {
       }
     }
 
+    return this.rebuild();
+  }
+
+  previewPropagation(change: Change): PropagationTarget[] {
+    const { crossRefs } = this.rebuild();
+    return computePropagation(change, crossRefs);
+  }
+
+  applyPropagation(targets: PropagationTarget[]): GraphState {
+    for (const target of targets) {
+      this.applyChange({
+        docId: target.docId,
+        elementPath: target.elementPath,
+        oldValue: target.currentValue,
+        newValue: target.proposedValue,
+      });
+    }
     return this.rebuild();
   }
 

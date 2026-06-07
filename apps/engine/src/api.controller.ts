@@ -2,12 +2,14 @@ import {
   Controller,
   Get,
   Post,
+  Body,
   Query,
   UploadedFile,
   UseInterceptors,
   BadRequestException,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
+import type { Change, PropagationTarget } from "@propagate/contracts";
 import { IngestionService } from "./ingestion/ingestion.service.js";
 import { GraphService } from "./graph/graph.service.js";
 
@@ -52,5 +54,15 @@ export class ApiController {
     const graph = this.graphService.addDocument(envelope);
 
     return { envelope, graph };
+  }
+
+  @Post("propagate/preview")
+  previewPropagation(@Body() change: Change) {
+    return this.graphService.previewPropagation(change);
+  }
+
+  @Post("propagate/apply")
+  applyPropagation(@Body() body: { targets: PropagationTarget[] }) {
+    return this.graphService.applyPropagation(body.targets);
   }
 }
