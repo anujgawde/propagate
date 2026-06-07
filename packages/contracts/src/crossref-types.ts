@@ -45,6 +45,14 @@ export interface Change {
   newValue: string | number;
 }
 
+export interface PropagationTarget {
+  crossRefId: string;
+  docId: string;
+  elementPath: string;
+  currentValue: string | number;
+  proposedValue: string | number;
+}
+
 export interface Impact {
   crossRefId: string;
   affectedDoc: string;

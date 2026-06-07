@@ -21,6 +21,7 @@ export type {
   MismatchSeverity,
   Mismatch,
   Change,
+  PropagationTarget,
   Impact,
   GraphState,
 } from "./crossref-types.js";
