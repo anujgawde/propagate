@@ -12,12 +12,14 @@ import { FileInterceptor } from "@nestjs/platform-express";
 import type { Change, PropagationTarget } from "@propagate/contracts";
 import { IngestionService } from "./ingestion/ingestion.service.js";
 import { GraphService } from "./graph/graph.service.js";
+import { AgentService } from "./agent/agent.service.js";
 
 @Controller("api")
 export class ApiController {
   constructor(
     private readonly ingestionService: IngestionService,
     private readonly graphService: GraphService,
+    private readonly agentService: AgentService,
   ) {}
 
   @Get("health")
@@ -54,6 +56,11 @@ export class ApiController {
     const graph = this.graphService.addDocument(envelope);
 
     return { envelope, graph };
+  }
+
+  @Get("agent/health")
+  agentHealth() {
+    return this.agentService.checkHealth();
   }
 
   @Post("propagate/preview")
