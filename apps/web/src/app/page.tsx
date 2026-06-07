@@ -5,6 +5,8 @@ import { ScheduleTable } from "@/components/schedule-table/schedule-table";
 import { ImpactBar } from "@/components/impact-bar/impact-bar";
 import { UploadZone } from "@/components/upload/upload-zone";
 import { PropagationPrompt } from "@/components/propagation-prompt/propagation-prompt";
+import { AgentStatusBadge } from "@/components/agent/agent-status-badge";
+import { AgentPanel } from "@/components/agent/agent-panel";
 import { useSocket } from "@/hooks/use-socket";
 
 export default function Home() {
@@ -13,7 +15,10 @@ export default function Home() {
   return (
     <div className="flex h-screen flex-col">
       <header className="flex items-center justify-between border-b border-zinc-800 px-6 py-3">
-        <h1 className="text-lg font-semibold tracking-tight">Propagate</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-lg font-semibold tracking-tight">Propagate</h1>
+          <AgentStatusBadge />
+        </div>
         <UploadZone />
       </header>
 
@@ -27,6 +32,7 @@ export default function Home() {
       </main>
 
       <PropagationPrompt />
+      <AgentPanel />
       <ImpactBar />
     </div>
   );
