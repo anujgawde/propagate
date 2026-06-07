@@ -1,16 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { useDocumentStore } from "@/store/documents";
-
-const ENGINE_URL = process.env.NEXT_PUBLIC_ENGINE_URL ?? "http://localhost:3001";
+import { socket } from "@/socket/client";
 
 export function PropagationPrompt() {
   const pendingPropagation = useDocumentStore((s) => s.pendingPropagation);
   const setPendingPropagation = useDocumentStore((s) => s.setPendingPropagation);
   const applyChange = useDocumentStore((s) => s.applyChange);
   const documents = useDocumentStore((s) => s.documents);
-  const [applying, setApplying] = useState(false);
 
   if (!pendingPropagation || pendingPropagation.length === 0) return null;
 
@@ -20,29 +17,19 @@ export function PropagationPrompt() {
     return doc.type.replace("-", " ");
   };
 
-  const handleApply = async () => {
-    setApplying(true);
-    try {
-      const res = await fetch(`${ENGINE_URL}/api/propagate/apply`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ targets: pendingPropagation }),
-      });
+  const handleApply = () => {
+    socket.emit("propagate:submit", pendingPropagation);
 
-      if (res.ok) {
-        for (const target of pendingPropagation) {
-          applyChange({
-            docId: target.docId,
-            elementPath: target.elementPath,
-            oldValue: target.currentValue,
-            newValue: target.proposedValue,
-          });
-        }
-      }
-    } finally {
-      setApplying(false);
-      setPendingPropagation(null);
+    for (const target of pendingPropagation) {
+      applyChange({
+        docId: target.docId,
+        elementPath: target.elementPath,
+        oldValue: target.currentValue,
+        newValue: target.proposedValue,
+      });
     }
+
+    setPendingPropagation(null);
   };
 
   const handleDismiss = () => {
@@ -77,10 +64,9 @@ export function PropagationPrompt() {
       <div className="flex gap-2">
         <button
           onClick={handleApply}
-          disabled={applying}
-          className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-500 disabled:opacity-50"
+          className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-500"
         >
-          {applying ? "Applying..." : "Propagate"}
+          Propagate
         </button>
         <button
           onClick={handleDismiss}
