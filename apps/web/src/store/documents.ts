@@ -1,27 +1,83 @@
+"use client";
+
 import { create } from "zustand";
-import type { DocumentEnvelope, GraphState, Mismatch } from "@propagate/contracts";
+import type {
+  DocumentEnvelope,
+  CrossRef,
+  Mismatch,
+  Change,
+  FloorPlan,
+  Schedule,
+} from "@propagate/contracts";
+import { buildGraph, checkConsistency } from "@propagate/crossref";
 
 interface DocumentStore {
   documents: DocumentEnvelope[];
-  graph: GraphState | null;
+  crossRefs: CrossRef[];
   mismatches: Mismatch[];
   selectedElementId: string | null;
+  uploading: boolean;
 
   addDocument: (doc: DocumentEnvelope) => void;
-  setGraph: (graph: GraphState) => void;
-  setMismatches: (mismatches: Mismatch[]) => void;
+  setDocuments: (docs: DocumentEnvelope[]) => void;
+  applyChange: (change: Change) => void;
   selectElement: (id: string | null) => void;
+  setUploading: (v: boolean) => void;
 }
 
-export const useDocumentStore = create<DocumentStore>((set) => ({
+function rebuildGraph(documents: DocumentEnvelope[]) {
+  const crossRefs = buildGraph(documents);
+  const mismatches = checkConsistency(crossRefs);
+  return { crossRefs, mismatches };
+}
+
+export const useDocumentStore = create<DocumentStore>((set, get) => ({
   documents: [],
-  graph: null,
+  crossRefs: [],
   mismatches: [],
   selectedElementId: null,
+  uploading: false,
 
-  addDocument: (doc) =>
-    set((state) => ({ documents: [...state.documents, doc] })),
-  setGraph: (graph) => set({ graph }),
-  setMismatches: (mismatches) => set({ mismatches }),
+  addDocument: (doc) => {
+    const documents = [...get().documents, doc];
+    const { crossRefs, mismatches } = rebuildGraph(documents);
+    set({ documents, crossRefs, mismatches });
+  },
+
+  setDocuments: (documents) => {
+    const { crossRefs, mismatches } = rebuildGraph(documents);
+    set({ documents, crossRefs, mismatches });
+  },
+
+  applyChange: (change) => {
+    const documents = get().documents.map((d) => {
+      if (d.id !== change.docId) return d;
+
+      const parts = change.elementPath.split(".");
+      const doc = structuredClone(d);
+
+      if (parts[0] === "rooms") {
+        const fp = doc.document as FloorPlan;
+        const room = fp.rooms.find((r) => r.id === parts[1]);
+        if (room) {
+          (room as unknown as Record<string, unknown>)[parts[2]] =
+            change.newValue;
+        }
+      } else if (parts[0] === "rows") {
+        const schedule = doc.document as Schedule;
+        const row = schedule.rows.find((r) => r.id === parts[1]);
+        if (row) {
+          row.values[parts[2]] = change.newValue;
+        }
+      }
+
+      return doc;
+    });
+
+    const { crossRefs, mismatches } = rebuildGraph(documents);
+    set({ documents, crossRefs, mismatches });
+  },
+
   selectElement: (id) => set({ selectedElementId: id }),
+  setUploading: (uploading) => set({ uploading }),
 }));

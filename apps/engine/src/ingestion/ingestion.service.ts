@@ -1,9 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import type { DocumentEnvelope, DocumentType } from "@propagate/contracts";
 import { randomUUID } from "crypto";
-import { parseIfc } from "./ifc-parser";
-import { parseExcel } from "./excel-parser";
-import { parsePdf } from "./pdf-parser";
+import { parseIfc } from "./ifc-parser.js";
+import { parseExcel } from "./excel-parser.js";
+import { parsePdf } from "./pdf-parser.js";
 
 @Injectable()
 export class IngestionService {

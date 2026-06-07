@@ -1,5 +1,11 @@
 import { Injectable } from "@nestjs/common";
-import type { DocumentEnvelope, GraphState } from "@propagate/contracts";
+import type {
+  DocumentEnvelope,
+  GraphState,
+  Change,
+  FloorPlan,
+  Schedule,
+} from "@propagate/contracts";
 import { buildGraph, checkConsistency } from "@propagate/crossref";
 
 @Injectable()
@@ -8,6 +14,33 @@ export class GraphService {
 
   addDocument(doc: DocumentEnvelope): GraphState {
     this.documents.push(doc);
+    return this.rebuild();
+  }
+
+  getDocuments(): DocumentEnvelope[] {
+    return this.documents;
+  }
+
+  applyChange(change: Change): GraphState {
+    const doc = this.documents.find((d) => d.id === change.docId);
+    if (!doc) return this.rebuild();
+
+    const parts = change.elementPath.split(".");
+    if (parts[0] === "rooms") {
+      const fp = doc.document as FloorPlan;
+      const room = fp.rooms.find((r) => r.id === parts[1]);
+      if (room) {
+        (room as unknown as Record<string, unknown>)[parts[2]] =
+          change.newValue;
+      }
+    } else if (parts[0] === "rows") {
+      const schedule = doc.document as Schedule;
+      const row = schedule.rows.find((r) => r.id === parts[1]);
+      if (row) {
+        row.values[parts[2]] = change.newValue;
+      }
+    }
+
     return this.rebuild();
   }
 

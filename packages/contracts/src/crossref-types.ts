@@ -5,7 +5,9 @@ export type CrossRefType =
   | "door-number"
   | "door-room"
   | "door-property"
-  | "element-sheet";
+  | "element-sheet"
+  | "missing-in-schedule"
+  | "missing-in-floorplan";
 
 export type MatchMethod = "exact" | "fuzzy";
 

@@ -3,8 +3,8 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import type { DocumentEnvelope, FloorPlan, Schedule } from "@propagate/contracts";
 import { buildGraph, checkConsistency } from "@propagate/crossref";
-import { parseIfc } from "../ifc-parser";
-import { parseExcel } from "../excel-parser";
+import { parseIfc } from "../ifc-parser.js";
+import { parseExcel } from "../excel-parser.js";
 
 const SAMPLES_DIR = join(__dirname, "../../../../..", "samples");
 

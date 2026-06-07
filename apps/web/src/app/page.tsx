@@ -1,9 +1,14 @@
+"use client";
+
 import { FloorPlanViewer } from "@/components/floor-plan/floor-plan-viewer";
 import { ScheduleTable } from "@/components/schedule-table/schedule-table";
 import { ImpactBar } from "@/components/impact-bar/impact-bar";
 import { UploadZone } from "@/components/upload/upload-zone";
+import { useSocket } from "@/hooks/use-socket";
 
 export default function Home() {
+  useSocket();
+
   return (
     <div className="flex h-screen flex-col">
       <header className="flex items-center justify-between border-b border-zinc-800 px-6 py-3">

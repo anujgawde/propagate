@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "fs";
 import { join } from "path";
-import { parseExcel } from "../excel-parser";
+import { parseExcel } from "../excel-parser.js";
 
 const SAMPLES_DIR = join(__dirname, "../../../../..", "samples");
 

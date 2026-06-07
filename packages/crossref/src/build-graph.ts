@@ -47,11 +47,16 @@ function matchRooms(
   schedule: DocumentEnvelope & { document: Schedule },
 ): CrossRef[] {
   const refs: CrossRef[] = [];
+  const matchedRoomIds = new Set<string>();
+  const matchedRowIds = new Set<string>();
 
   for (const room of fp.document.rooms) {
     for (const row of schedule.document.rows) {
       const scheduleNumber = String(row.values["number"] ?? "");
       if (room.number && scheduleNumber && room.number === scheduleNumber) {
+        matchedRoomIds.add(room.id);
+        matchedRowIds.add(row.id);
+
         refs.push({
           id: `${fp.id}:room:${room.id}:number→${schedule.id}:${row.id}`,
           type: "room-number",
@@ -112,6 +117,47 @@ function matchRooms(
     }
   }
 
+  for (const room of fp.document.rooms) {
+    if (!room.number || matchedRoomIds.has(room.id)) continue;
+    refs.push({
+      id: `${fp.id}:room:${room.id}:missing→${schedule.id}`,
+      type: "missing-in-schedule",
+      matchMethod: "exact",
+      confidence: 1.0,
+      source: {
+        docId: fp.id,
+        elementPath: `rooms.${room.id}.number`,
+        value: room.number,
+      },
+      target: {
+        docId: schedule.id,
+        elementPath: "",
+        value: "",
+      },
+    });
+  }
+
+  for (const row of schedule.document.rows) {
+    const scheduleNumber = String(row.values["number"] ?? "");
+    if (!scheduleNumber || matchedRowIds.has(row.id)) continue;
+    refs.push({
+      id: `${schedule.id}:row:${row.id}:missing→${fp.id}`,
+      type: "missing-in-floorplan",
+      matchMethod: "exact",
+      confidence: 1.0,
+      source: {
+        docId: schedule.id,
+        elementPath: `rows.${row.id}.number`,
+        value: scheduleNumber,
+      },
+      target: {
+        docId: fp.id,
+        elementPath: "",
+        value: "",
+      },
+    });
+  }
+
   return refs;
 }
 
@@ -120,11 +166,16 @@ function matchDoors(
   schedule: DocumentEnvelope & { document: Schedule },
 ): CrossRef[] {
   const refs: CrossRef[] = [];
+  const matchedDoorIds = new Set<string>();
+  const matchedRowIds = new Set<string>();
 
   for (const door of fp.document.doors) {
     for (const row of schedule.document.rows) {
       const scheduleNumber = String(row.values["number"] ?? "");
       if (door.number && scheduleNumber && door.number === scheduleNumber) {
+        matchedDoorIds.add(door.id);
+        matchedRowIds.add(row.id);
+
         refs.push({
           id: `${fp.id}:door:${door.id}:number→${schedule.id}:${row.id}`,
           type: "door-number",
@@ -143,6 +194,47 @@ function matchDoors(
         });
       }
     }
+  }
+
+  for (const door of fp.document.doors) {
+    if (!door.number || matchedDoorIds.has(door.id)) continue;
+    refs.push({
+      id: `${fp.id}:door:${door.id}:missing→${schedule.id}`,
+      type: "missing-in-schedule",
+      matchMethod: "exact",
+      confidence: 1.0,
+      source: {
+        docId: fp.id,
+        elementPath: `doors.${door.id}.number`,
+        value: door.number,
+      },
+      target: {
+        docId: schedule.id,
+        elementPath: "",
+        value: "",
+      },
+    });
+  }
+
+  for (const row of schedule.document.rows) {
+    const scheduleNumber = String(row.values["number"] ?? "");
+    if (!scheduleNumber || matchedRowIds.has(row.id)) continue;
+    refs.push({
+      id: `${schedule.id}:row:${row.id}:missing→${fp.id}`,
+      type: "missing-in-floorplan",
+      matchMethod: "exact",
+      confidence: 1.0,
+      source: {
+        docId: schedule.id,
+        elementPath: `rows.${row.id}.number`,
+        value: scheduleNumber,
+      },
+      target: {
+        docId: fp.id,
+        elementPath: "",
+        value: "",
+      },
+    });
   }
 
   return refs;

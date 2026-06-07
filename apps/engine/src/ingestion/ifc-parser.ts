@@ -138,32 +138,73 @@ function resolveArea(
   return 0;
 }
 
+function resolve(
+  ref: any,
+  api: WebIFC.IfcAPI,
+  modelId: number,
+): any {
+  if (ref && typeof ref === "object" && typeof ref.value === "number" && ref.type != null) {
+    return api.GetLine(modelId, ref.value);
+  }
+  return ref;
+}
+
+function resolveCoords(
+  entity: any,
+  api: WebIFC.IfcAPI,
+  modelId: number,
+): { x: number; y: number } {
+  try {
+    const placement = resolve(entity.ObjectPlacement, api, modelId);
+    if (!placement) return { x: 0, y: 0 };
+
+    const relPlacement = resolve(placement.RelativePlacement, api, modelId);
+    if (!relPlacement) return { x: 0, y: 0 };
+
+    const location = resolve(relPlacement.Location, api, modelId);
+    if (!location?.Coordinates) return { x: 0, y: 0 };
+
+    const coords = location.Coordinates;
+    return {
+      x: Number(coords[0]?.value ?? 0),
+      y: Number(coords[1]?.value ?? 0),
+    };
+  } catch {
+    return { x: 0, y: 0 };
+  }
+}
+
 function resolveBounds(
   space: any,
-  _api: WebIFC.IfcAPI,
-  _modelId: number,
+  api: WebIFC.IfcAPI,
+  modelId: number,
 ): BoundingBox {
-  const placement = space.ObjectPlacement;
-  let x = 0;
-  let y = 0;
+  const { x, y } = resolveCoords(space, api, modelId);
 
-  if (placement) {
-    try {
-      const relPlacement = placement.RelativePlacement;
-      if (relPlacement?.Location?.Coordinates) {
-        const coords = relPlacement.Location.Coordinates;
-        x = Number(coords[0]?.value ?? 0);
-        y = Number(coords[1]?.value ?? 0);
+  let width = 10;
+  let height = 10;
+
+  try {
+    const rep = resolve(space.Representation, api, modelId);
+    const representations = rep?.Representations ?? [];
+    for (const srRef of representations) {
+      const sr = resolve(srRef, api, modelId);
+      const items = sr?.Items ?? [];
+      for (const itemRef of items) {
+        const item = resolve(itemRef, api, modelId);
+        if (item?.XDim?.value != null && item?.YDim?.value != null) {
+          width = Number(item.XDim.value);
+          height = Number(item.YDim.value);
+        }
       }
-    } catch {
-      // Placement hierarchy too deep to resolve inline
     }
+  } catch {
+    // Fall back to default size
   }
 
-  const defaultSize = 10;
   return {
     min: { x, y },
-    max: { x: x + defaultSize, y: y + defaultSize },
+    max: { x: x + width, y: y + height },
   };
 }
 
@@ -178,7 +219,7 @@ function extractDoors(api: WebIFC.IfcAPI, modelId: number): Door[] {
     const number = door.Tag?.value ?? door.Name?.value ?? `door-${expressId}`;
     const width = Number(door.OverallWidth?.value ?? 0);
     const height = Number(door.OverallHeight?.value ?? 0);
-    const position = resolveDoorPosition(door);
+    const position = resolveDoorPosition(door, api, modelId);
     const props = extractAllProperties(api, modelId, expressId);
 
     doors.push({
@@ -197,20 +238,12 @@ function extractDoors(api: WebIFC.IfcAPI, modelId: number): Door[] {
   return doors;
 }
 
-function resolveDoorPosition(door: any): Coordinate {
-  try {
-    const placement = door.ObjectPlacement;
-    if (placement?.RelativePlacement?.Location?.Coordinates) {
-      const coords = placement.RelativePlacement.Location.Coordinates;
-      return {
-        x: Number(coords[0]?.value ?? 0),
-        y: Number(coords[1]?.value ?? 0),
-      };
-    }
-  } catch {
-    // Fall through
-  }
-  return { x: 0, y: 0 };
+function resolveDoorPosition(
+  door: any,
+  api: WebIFC.IfcAPI,
+  modelId: number,
+): Coordinate {
+  return resolveCoords(door, api, modelId);
 }
 
 function extractWalls(api: WebIFC.IfcAPI, modelId: number): Wall[] {
@@ -225,7 +258,7 @@ function extractWalls(api: WebIFC.IfcAPI, modelId: number): Wall[] {
     const expressId = wallLineIds.get(i);
     const wall = api.GetLine(modelId, expressId);
 
-    const position = resolveWallPosition(wall);
+    const position = resolveWallPosition(wall, api, modelId);
     const props = extractAllProperties(api, modelId, expressId);
     const thickness = Number(props["Width"] ?? 0.2);
 
@@ -241,23 +274,15 @@ function extractWalls(api: WebIFC.IfcAPI, modelId: number): Wall[] {
   return walls;
 }
 
-function resolveWallPosition(wall: any): {
+function resolveWallPosition(
+  wall: any,
+  api: WebIFC.IfcAPI,
+  modelId: number,
+): {
   start: Coordinate;
   end: Coordinate;
 } {
-  let ox = 0;
-  let oy = 0;
-  try {
-    const placement = wall.ObjectPlacement;
-    if (placement?.RelativePlacement?.Location?.Coordinates) {
-      const coords = placement.RelativePlacement.Location.Coordinates;
-      ox = Number(coords[0]?.value ?? 0);
-      oy = Number(coords[1]?.value ?? 0);
-    }
-  } catch {
-    // Fall through
-  }
-
+  const { x: ox, y: oy } = resolveCoords(wall, api, modelId);
   return {
     start: { x: ox, y: oy },
     end: { x: ox, y: oy },
