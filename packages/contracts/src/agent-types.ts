@@ -16,3 +16,17 @@ export interface AgentSuggestionsPayload {
   modelUsed: string;
   generatedAt: string;
 }
+
+export interface MatchConfirmation {
+  crossRefId: string;
+  confirmed: boolean;
+  confidence: number;
+  reasoning: string;
+  suggestedCanonicalName?: string;
+}
+
+export interface AgentMatchConfirmPayload {
+  confirmations: MatchConfirmation[];
+  modelUsed: string;
+  generatedAt: string;
+}

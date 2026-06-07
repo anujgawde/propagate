@@ -72,6 +72,15 @@ export class ApiController {
     return result;
   }
 
+  @Post("agent/confirm-matches")
+  async agentConfirmMatches() {
+    const { crossRefs } = this.graphService.getState();
+    const documents = this.graphService.getDocuments();
+    const result = await this.agentService.confirmFuzzyMatches(crossRefs, documents);
+    if (!result) return { available: false };
+    return result;
+  }
+
   @Post("propagate/preview")
   previewPropagation(@Body() change: Change) {
     return this.graphService.previewPropagation(change);

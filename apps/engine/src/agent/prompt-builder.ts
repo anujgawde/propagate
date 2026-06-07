@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import type { Mismatch, DocumentEnvelope } from "@propagate/contracts";
+import type { Mismatch, DocumentEnvelope, CrossRef } from "@propagate/contracts";
 import type { OllamaChatMessage } from "./ollama.client.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -11,7 +11,7 @@ function loadPrompt(name: string): string {
   return readFileSync(join(PROMPTS_DIR, `${name}.txt`), "utf-8");
 }
 
-const MAX_MISMATCHES_PER_REQUEST = 10;
+const MAX_ITEMS_PER_REQUEST = 10;
 
 export function buildFixSuggestionPrompt(
   mismatches: Mismatch[],
@@ -19,7 +19,7 @@ export function buildFixSuggestionPrompt(
 ): OllamaChatMessage[] {
   const docTypeMap = new Map(documents.map((d) => [d.id, d.type]));
 
-  const truncated = mismatches.slice(0, MAX_MISMATCHES_PER_REQUEST);
+  const truncated = mismatches.slice(0, MAX_ITEMS_PER_REQUEST);
 
   const mismatchDescriptions = truncated.map((m) => ({
     mismatchId: m.id,
@@ -45,6 +45,42 @@ export function buildFixSuggestionPrompt(
     {
       role: "user",
       content: `Analyze these ${truncated.length} mismatches and propose fixes:\n\n${JSON.stringify(mismatchDescriptions, null, 2)}`,
+    },
+  ];
+}
+
+export function buildMatchConfirmationPrompt(
+  crossRefs: CrossRef[],
+  documents: DocumentEnvelope[],
+): OllamaChatMessage[] {
+  const docTypeMap = new Map(documents.map((d) => [d.id, d.type]));
+
+  const truncated = crossRefs.slice(0, MAX_ITEMS_PER_REQUEST);
+
+  const descriptions = truncated.map((cr) => ({
+    crossRefId: cr.id,
+    type: cr.type,
+    matchMethod: cr.matchMethod,
+    confidence: cr.confidence,
+    source: {
+      docId: cr.source.docId,
+      docType: docTypeMap.get(cr.source.docId) ?? "unknown",
+      elementPath: cr.source.elementPath,
+      value: cr.source.value,
+    },
+    target: {
+      docId: cr.target.docId,
+      docType: docTypeMap.get(cr.target.docId) ?? "unknown",
+      elementPath: cr.target.elementPath,
+      value: cr.target.value,
+    },
+  }));
+
+  return [
+    { role: "system", content: loadPrompt("match-confirmation") },
+    {
+      role: "user",
+      content: `Review these ${truncated.length} fuzzy matches and confirm whether each pair refers to the same element:\n\n${JSON.stringify(descriptions, null, 2)}`,
     },
   ];
 }

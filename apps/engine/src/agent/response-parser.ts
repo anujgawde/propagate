@@ -1,4 +1,4 @@
-import type { Mismatch, FixSuggestion } from "@propagate/contracts";
+import type { Mismatch, FixSuggestion, CrossRef, MatchConfirmation } from "@propagate/contracts";
 
 interface RawFixSuggestion {
   mismatchId?: string;
@@ -66,4 +66,59 @@ export function parseFixSuggestions(
   }
 
   return suggestions;
+}
+
+interface RawMatchConfirmation {
+  crossRefId?: string;
+  confirmed?: boolean;
+  confidence?: number;
+  reasoning?: string;
+  suggestedCanonicalName?: string | null;
+}
+
+function isValidRawConfirmation(item: unknown): item is RawMatchConfirmation {
+  if (typeof item !== "object" || item === null) return false;
+  const obj = item as Record<string, unknown>;
+  return (
+    typeof obj.crossRefId === "string" &&
+    typeof obj.confirmed === "boolean" &&
+    typeof obj.confidence === "number" &&
+    typeof obj.reasoning === "string"
+  );
+}
+
+export function parseMatchConfirmations(
+  raw: string,
+  crossRefs: CrossRef[],
+): MatchConfirmation[] {
+  const crossRefIds = new Set(crossRefs.map((cr) => cr.id));
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(extractJson(raw));
+  } catch {
+    return [];
+  }
+
+  if (!Array.isArray(parsed)) return [];
+
+  const confirmations: MatchConfirmation[] = [];
+
+  for (const item of parsed) {
+    if (!isValidRawConfirmation(item)) continue;
+    if (!crossRefIds.has(item.crossRefId!)) continue;
+
+    confirmations.push({
+      crossRefId: item.crossRefId!,
+      confirmed: item.confirmed!,
+      confidence: Math.max(0, Math.min(1, item.confidence!)),
+      reasoning: item.reasoning!,
+      suggestedCanonicalName:
+        typeof item.suggestedCanonicalName === "string"
+          ? item.suggestedCanonicalName
+          : undefined,
+    });
+  }
+
+  return confirmations;
 }

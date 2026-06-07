@@ -56,6 +56,18 @@ export class PropagateGateway {
     client.emit("agent:suggestions", result);
   }
 
+  @SubscribeMessage("agent:confirm-matches")
+  async handleConfirmMatches(@ConnectedSocket() client: Socket) {
+    const { crossRefs } = this.graphService.getState();
+    const documents = this.graphService.getDocuments();
+    const result = await this.agentService.confirmFuzzyMatches(crossRefs, documents);
+    if (!result) {
+      client.emit("agent:status", { available: false });
+      return;
+    }
+    client.emit("agent:match-confirmations", result);
+  }
+
   @SubscribeMessage("agent:accept-suggestion")
   handleAcceptSuggestion(
     @MessageBody() payload: { mismatchId: string },

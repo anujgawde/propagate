@@ -35,4 +35,6 @@ export type {
 export type {
   FixSuggestion,
   AgentSuggestionsPayload,
+  MatchConfirmation,
+  AgentMatchConfirmPayload,
 } from "./agent-types.js";
