@@ -6,6 +6,7 @@ import type {
   CrossRef,
   Mismatch,
   Change,
+  PropagationTarget,
   FloorPlan,
   Schedule,
 } from "@propagate/contracts";
@@ -17,12 +18,14 @@ interface DocumentStore {
   mismatches: Mismatch[];
   selectedElementId: string | null;
   uploading: boolean;
+  pendingPropagation: PropagationTarget[] | null;
 
   addDocument: (doc: DocumentEnvelope) => void;
   setDocuments: (docs: DocumentEnvelope[]) => void;
   applyChange: (change: Change) => void;
   selectElement: (id: string | null) => void;
   setUploading: (v: boolean) => void;
+  setPendingPropagation: (targets: PropagationTarget[] | null) => void;
 }
 
 function rebuildGraph(documents: DocumentEnvelope[]) {
@@ -80,4 +83,6 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
 
   selectElement: (id) => set({ selectedElementId: id }),
   setUploading: (uploading) => set({ uploading }),
+  pendingPropagation: null,
+  setPendingPropagation: (targets) => set({ pendingPropagation: targets }),
 }));

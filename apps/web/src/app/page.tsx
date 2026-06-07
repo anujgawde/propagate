@@ -4,6 +4,7 @@ import { FloorPlanViewer } from "@/components/floor-plan/floor-plan-viewer";
 import { ScheduleTable } from "@/components/schedule-table/schedule-table";
 import { ImpactBar } from "@/components/impact-bar/impact-bar";
 import { UploadZone } from "@/components/upload/upload-zone";
+import { PropagationPrompt } from "@/components/propagation-prompt/propagation-prompt";
 import { useSocket } from "@/hooks/use-socket";
 
 export default function Home() {
@@ -25,6 +26,7 @@ export default function Home() {
         </div>
       </main>
 
+      <PropagationPrompt />
       <ImpactBar />
     </div>
   );

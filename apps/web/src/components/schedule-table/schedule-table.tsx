@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import type { Schedule, Mismatch, Change } from "@propagate/contracts";
+import type { Schedule, Mismatch, Change, PropagationTarget } from "@propagate/contracts";
 import { useDocumentStore } from "@/store/documents";
 import { socket } from "@/socket/client";
+
+const ENGINE_URL = process.env.NEXT_PUBLIC_ENGINE_URL ?? "http://localhost:3001";
 
 export function ScheduleTable() {
   const documents = useDocumentStore((s) => s.documents);
@@ -101,6 +103,7 @@ function EditableCell({
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
+  const setPendingPropagation = useDocumentStore((s) => s.setPendingPropagation);
 
   const elementPath = `rows.${rowId}.${columnKey}`;
   const mismatch = mismatches.find(
@@ -129,7 +132,20 @@ function EditableCell({
     };
     onCommit(change);
     socket.emit("edit:submit", change);
-  }, [draft, value, docId, elementPath, onCommit]);
+
+    fetch(`${ENGINE_URL}/api/propagate/preview`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(change),
+    })
+      .then((r) => r.json())
+      .then((targets: PropagationTarget[]) => {
+        if (targets.length > 0) {
+          setPendingPropagation(targets);
+        }
+      })
+      .catch(() => {});
+  }, [draft, value, docId, elementPath, onCommit, setPendingPropagation]);
 
   const bgClass = mismatch
     ? "bg-amber-900/30 border-l-2 border-l-amber-500"
