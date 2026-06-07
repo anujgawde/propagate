@@ -1,5 +1,6 @@
 import type { Change, GraphState, Impact, Mismatch, PropagationTarget } from "./crossref-types.js";
 import type { DocumentEnvelope } from "./document-types.js";
+import type { AgentSuggestionsPayload } from "./agent-types.js";
 
 export interface IngestionProgress {
   fileId: string;
@@ -17,6 +18,8 @@ export interface ServerToClientEvents {
   "propagate:broadcast": (payload: Change[]) => void;
   "impact:result": (payload: Impact[]) => void;
   "mismatches:updated": (payload: Mismatch[]) => void;
+  "agent:status": (payload: { available: boolean }) => void;
+  "agent:suggestions": (payload: AgentSuggestionsPayload) => void;
 }
 
 export interface ClientToServerEvents {
@@ -24,4 +27,6 @@ export interface ClientToServerEvents {
   "edit:apply-all": (payload: Change) => void;
   "edit:revert": (payload: Change) => void;
   "propagate:submit": (payload: PropagationTarget[]) => void;
+  "agent:request-suggestions": () => void;
+  "agent:accept-suggestion": (payload: { mismatchId: string }) => void;
 }

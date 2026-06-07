@@ -63,6 +63,15 @@ export class ApiController {
     return this.agentService.checkHealth();
   }
 
+  @Post("agent/suggest")
+  async agentSuggest() {
+    const { mismatches } = this.graphService.getState();
+    const documents = this.graphService.getDocuments();
+    const result = await this.agentService.suggestFixes(mismatches, documents);
+    if (!result) return { available: false };
+    return result;
+  }
+
   @Post("propagate/preview")
   previewPropagation(@Body() change: Change) {
     return this.graphService.previewPropagation(change);

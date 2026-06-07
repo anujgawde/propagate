@@ -31,3 +31,8 @@ export type {
   ServerToClientEvents,
   ClientToServerEvents,
 } from "./events.js";
+
+export type {
+  FixSuggestion,
+  AgentSuggestionsPayload,
+} from "./agent-types.js";
