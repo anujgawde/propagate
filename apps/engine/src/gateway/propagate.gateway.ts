@@ -21,20 +21,20 @@ export class PropagateGateway {
   server!: Server;
 
   @SubscribeMessage("edit:submit")
-  handleEdit(
+  async handleEdit(
     @MessageBody() change: Change,
     @ConnectedSocket() client: Socket,
   ) {
-    this.graphService.applyChange(change);
+    await this.graphService.applyChange(change);
     client.broadcast.emit("edit:broadcast", change);
   }
 
   @SubscribeMessage("propagate:submit")
-  handlePropagate(
+  async handlePropagate(
     @MessageBody() targets: PropagationTarget[],
     @ConnectedSocket() client: Socket,
   ) {
-    this.graphService.applyPropagation(targets);
+    await this.graphService.applyPropagation(targets);
     const changes: Change[] = targets.map((t) => ({
       docId: t.docId,
       elementPath: t.elementPath,
@@ -69,7 +69,7 @@ export class PropagateGateway {
   }
 
   @SubscribeMessage("agent:accept-suggestion")
-  handleAcceptSuggestion(
+  async handleAcceptSuggestion(
     @MessageBody() payload: { mismatchId: string },
     @ConnectedSocket() client: Socket,
   ) {
@@ -83,7 +83,7 @@ export class PropagateGateway {
       oldValue: mismatch.target.value,
       newValue: mismatch.source.value,
     };
-    this.graphService.applyChange(change);
+    await this.graphService.applyChange(change);
     client.broadcast.emit("edit:broadcast", change);
   }
 }

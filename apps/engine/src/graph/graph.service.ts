@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger, type OnModuleInit } from "@nestjs/common";
 import type {
   CrossRef,
   DocumentEnvelope,
@@ -10,16 +10,33 @@ import type {
 } from "@propagate/contracts";
 import { buildGraph, checkConsistency, computePropagation } from "@propagate/crossref";
 import { MatchingService } from "../matching/matching.service.js";
+import { RedisService } from "../redis/redis.service.js";
+
+const DOCUMENTS_KEY = "propagate:documents";
 
 @Injectable()
-export class GraphService {
+export class GraphService implements OnModuleInit {
+  private readonly logger = new Logger(GraphService.name);
   private documents: DocumentEnvelope[] = [];
   private fuzzyRefs: CrossRef[] = [];
 
-  constructor(private readonly matching: MatchingService) {}
+  constructor(
+    private readonly matching: MatchingService,
+    private readonly redis: RedisService,
+  ) {}
+
+  async onModuleInit() {
+    const cached = await this.redis.get<DocumentEnvelope[]>(DOCUMENTS_KEY);
+    if (cached && cached.length > 0) {
+      this.documents = cached;
+      this.logger.log(`Hydrated ${cached.length} document(s) from Redis`);
+      await this.refreshFuzzyRefs();
+    }
+  }
 
   async addDocument(doc: DocumentEnvelope): Promise<GraphState> {
     this.documents.push(doc);
+    await this.redis.set(DOCUMENTS_KEY, this.documents);
     await this.refreshFuzzyRefs();
     return this.rebuild();
   }
@@ -28,7 +45,7 @@ export class GraphService {
     return this.documents;
   }
 
-  applyChange(change: Change): GraphState {
+  async applyChange(change: Change): Promise<GraphState> {
     const doc = this.documents.find((d) => d.id === change.docId);
     if (!doc) return this.rebuild();
 
@@ -48,6 +65,7 @@ export class GraphService {
       }
     }
 
+    await this.redis.set(DOCUMENTS_KEY, this.documents);
     return this.rebuild();
   }
 
@@ -56,9 +74,9 @@ export class GraphService {
     return computePropagation(change, crossRefs);
   }
 
-  applyPropagation(targets: PropagationTarget[]): GraphState {
+  async applyPropagation(targets: PropagationTarget[]): Promise<GraphState> {
     for (const target of targets) {
-      this.applyChange({
+      await this.applyChange({
         docId: target.docId,
         elementPath: target.elementPath,
         oldValue: target.currentValue,
