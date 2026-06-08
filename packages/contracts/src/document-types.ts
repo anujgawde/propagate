@@ -74,4 +74,5 @@ export interface DocumentEnvelope {
   type: DocumentType;
   document: Document;
   uploadedAt: string;
+  sourceUrl?: string;
 }

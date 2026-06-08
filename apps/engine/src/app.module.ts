@@ -4,10 +4,11 @@ import { GraphModule } from "./graph/graph.module.js";
 import { GatewayModule } from "./gateway/gateway.module.js";
 import { AgentModule } from "./agent/agent.module.js";
 import { RedisModule } from "./redis/redis.module.js";
+import { StorageModule } from "./storage/storage.module.js";
 import { ApiController } from "./api.controller.js";
 
 @Module({
-  imports: [RedisModule, IngestionModule, GraphModule, GatewayModule, AgentModule],
+  imports: [RedisModule, StorageModule, IngestionModule, GraphModule, GatewayModule, AgentModule],
   controllers: [ApiController],
 })
 export class AppModule {}

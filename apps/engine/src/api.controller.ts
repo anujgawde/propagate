@@ -13,6 +13,7 @@ import type { Change, PropagationTarget } from "@propagate/contracts";
 import { IngestionService } from "./ingestion/ingestion.service.js";
 import { GraphService } from "./graph/graph.service.js";
 import { AgentService } from "./agent/agent.service.js";
+import { StorageService } from "./storage/storage.service.js";
 
 @Controller("api")
 export class ApiController {
@@ -20,6 +21,7 @@ export class ApiController {
     private readonly ingestionService: IngestionService,
     private readonly graphService: GraphService,
     private readonly agentService: AgentService,
+    private readonly storageService: StorageService,
   ) {}
 
   @Get("health")
@@ -52,6 +54,13 @@ export class ApiController {
       file.originalname,
       scheduleType,
     );
+
+    const sourceUrl = await this.storageService.upload(
+      file.buffer,
+      file.originalname,
+      envelope.id,
+    );
+    if (sourceUrl) envelope.sourceUrl = sourceUrl;
 
     const graph = await this.graphService.addDocument(envelope);
 
