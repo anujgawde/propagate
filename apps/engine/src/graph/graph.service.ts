@@ -1,5 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import type {
+  CrossRef,
   DocumentEnvelope,
   GraphState,
   Change,
@@ -8,13 +9,18 @@ import type {
   Schedule,
 } from "@propagate/contracts";
 import { buildGraph, checkConsistency, computePropagation } from "@propagate/crossref";
+import { MatchingService } from "../matching/matching.service.js";
 
 @Injectable()
 export class GraphService {
   private documents: DocumentEnvelope[] = [];
+  private fuzzyRefs: CrossRef[] = [];
 
-  addDocument(doc: DocumentEnvelope): GraphState {
+  constructor(private readonly matching: MatchingService) {}
+
+  async addDocument(doc: DocumentEnvelope): Promise<GraphState> {
     this.documents.push(doc);
+    await this.refreshFuzzyRefs();
     return this.rebuild();
   }
 
@@ -63,12 +69,22 @@ export class GraphService {
   }
 
   rebuild(): GraphState {
-    const crossRefs = buildGraph(this.documents);
+    const exactRefs = buildGraph(this.documents);
+    const crossRefs = [...exactRefs, ...this.fuzzyRefs];
     const mismatches = checkConsistency(crossRefs);
     return { crossRefs, mismatches };
   }
 
   getState(): GraphState {
     return this.rebuild();
+  }
+
+  private async refreshFuzzyRefs(): Promise<void> {
+    await this.matching.indexElements(this.documents);
+    const exactRefs = buildGraph(this.documents);
+    this.fuzzyRefs = await this.matching.buildFuzzyRefs(
+      this.documents,
+      exactRefs,
+    );
   }
 }

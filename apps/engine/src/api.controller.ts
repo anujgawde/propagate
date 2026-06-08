@@ -53,7 +53,7 @@ export class ApiController {
       scheduleType,
     );
 
-    const graph = this.graphService.addDocument(envelope);
+    const graph = await this.graphService.addDocument(envelope);
 
     return { envelope, graph };
   }
