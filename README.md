@@ -56,13 +56,13 @@ Copy `.env.example` to `.env` and fill in the values as needed.
 
 The `samples/` directory contains a dental clinic dataset used for development and testing:
 
-| File | Format | Contents |
-|---|---|---|
-| `dental-clinic.ifc` | IFC 2x3 | Floor plan with 17 rooms, 20 doors, 10 walls |
-| `room-schedule.xlsx` | Excel | Room finish schedule (17 rows) |
-| `door-schedule.xlsx` | Excel | Door schedule (19 rows — D-108 intentionally missing) |
-| `sheet-index.xlsx` | Excel | Sheet index (4 sheets) |
-| `room-schedule.pdf` | PDF | PDF version of the room schedule |
+| File                 | Format  | Contents                                              |
+| -------------------- | ------- | ----------------------------------------------------- |
+| `dental-clinic.ifc`  | IFC 2x3 | Floor plan with 17 rooms, 20 doors, 10 walls          |
+| `room-schedule.xlsx` | Excel   | Room finish schedule (17 rows)                        |
+| `door-schedule.xlsx` | Excel   | Door schedule (19 rows — D-108 intentionally missing) |
+| `sheet-index.xlsx`   | Excel   | Sheet index (4 sheets)                                |
+| `room-schedule.pdf`  | PDF     | PDF version of the room schedule                      |
 
 Four mismatches are seeded across these files to demonstrate cross-document detection:
 
@@ -107,7 +107,3 @@ Supported formats: `.ifc`, `.xlsx`, `.xls`, `.pdf`. The engine detects file type
 - The engine runs client-side for instant cascade visualization (<1ms latency). The backend keeps Redis in sync via WebSocket.
 - Two-layer matching: exact matching for IDs/numbers, fuzzy matching via LanceDB vectors for naming drift.
 - Sample data uses a dental/medical clinic (17 rooms, 20 doors) with 4 seeded mismatches to demonstrate the system on first load.
-
-## Current Status
-
-Monorepo scaffold, shared types, cross-reference engine (exact matching), ingestion parsers (IFC, Excel, PDF), sample data, NestJS backend with upload API, and the Next.js frontend shell are in place. The full UI and real-time cascade visualization are next.
