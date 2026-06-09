@@ -17,15 +17,19 @@ interface DocumentStore {
   crossRefs: CrossRef[];
   mismatches: Mismatch[];
   selectedElementId: string | null;
+  focusedMismatchId: string | null;
   uploading: boolean;
   pendingPropagation: PropagationTarget[] | null;
 
   addDocument: (doc: DocumentEnvelope) => void;
   setDocuments: (docs: DocumentEnvelope[]) => void;
+  setGraphState: (crossRefs: CrossRef[], mismatches: Mismatch[]) => void;
   applyChange: (change: Change) => void;
   selectElement: (id: string | null) => void;
+  focusMismatch: (id: string | null) => void;
   setUploading: (v: boolean) => void;
   setPendingPropagation: (targets: PropagationTarget[] | null) => void;
+  clearAll: () => void;
 }
 
 function rebuildGraph(documents: DocumentEnvelope[]) {
@@ -39,6 +43,7 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
   crossRefs: [],
   mismatches: [],
   selectedElementId: null,
+  focusedMismatchId: null,
   uploading: false,
 
   addDocument: (doc) => {
@@ -50,6 +55,10 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
   setDocuments: (documents) => {
     const { crossRefs, mismatches } = rebuildGraph(documents);
     set({ documents, crossRefs, mismatches });
+  },
+
+  setGraphState: (crossRefs, mismatches) => {
+    set({ crossRefs, mismatches });
   },
 
   applyChange: (change) => {
@@ -82,7 +91,17 @@ export const useDocumentStore = create<DocumentStore>((set, get) => ({
   },
 
   selectElement: (id) => set({ selectedElementId: id }),
+  focusMismatch: (id) => set({ focusedMismatchId: id }),
   setUploading: (uploading) => set({ uploading }),
   pendingPropagation: null,
   setPendingPropagation: (targets) => set({ pendingPropagation: targets }),
+  clearAll: () =>
+    set({
+      documents: [],
+      crossRefs: [],
+      mismatches: [],
+      selectedElementId: null,
+      focusedMismatchId: null,
+      pendingPropagation: null,
+    }),
 }));

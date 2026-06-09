@@ -138,6 +138,18 @@ describe("MatchingService", () => {
       expect(op1Refs.length).toBe(1);
     });
 
+    it("filters out matches where both texts have different numbers", async () => {
+      const lance = makeLanceService(true, {
+        "OPERATORY 1": [
+          { id: "fp-1:rooms.r2.name", docId: "fp-1", elementPath: "rooms.r2.name", text: "OPERATORY 2", confidence: 0.82 },
+        ],
+      });
+      service = new MatchingService(lance);
+
+      const refs = await service.buildFuzzyRefs([fpDoc, schedDoc], []);
+      expect(refs.length).toBe(0);
+    });
+
     it("assigns correct cross-ref type for room names", async () => {
       const lance = makeLanceService(true, {
         "OPERATORY 1": [

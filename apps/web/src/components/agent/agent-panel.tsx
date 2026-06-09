@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useAgentStore } from "@/store/agent";
 import { useDocumentStore } from "@/store/documents";
 import { socket } from "@/socket/client";
@@ -18,21 +17,21 @@ function SuggestionCard({ s, onAccept, onDismiss }: {
   onDismiss: () => void;
 }) {
   return (
-    <div className="rounded-md border border-zinc-800 bg-zinc-900/50 p-3">
+    <div className="rounded-md border border-edge bg-surface-alt p-3">
       <div className="mb-2 flex items-center gap-2">
         <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${confidenceColor(s.confidence)}`}>
           {Math.round(s.confidence * 100)}%
         </span>
-        <span className="text-xs text-zinc-400">{s.sourceOfTruth === "source" ? "Source" : "Target"} is correct</span>
+        <span className="text-xs text-ink-secondary">{s.sourceOfTruth === "source" ? "Source" : "Target"} is correct</span>
       </div>
-      <p className="mb-2 text-xs text-zinc-300">{s.reasoning}</p>
+      <p className="mb-2 text-xs text-ink-secondary">{s.reasoning}</p>
       <div className="mb-3 flex items-center gap-2 text-xs">
-        <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-zinc-500">
+        <span className="rounded bg-surface-inset px-1.5 py-0.5 text-ink-muted">
           {s.proposedFix.elementPath}
         </span>
-        <span className="text-zinc-500">&ldquo;{String(s.proposedFix.currentValue)}&rdquo;</span>
-        <span className="text-zinc-600">&rarr;</span>
-        <span className="text-emerald-400">&ldquo;{String(s.proposedFix.proposedValue)}&rdquo;</span>
+        <span className="text-ink-muted">&ldquo;{String(s.proposedFix.currentValue)}&rdquo;</span>
+        <span className="text-ink-faint">&rarr;</span>
+        <span className="text-emerald-600 dark:text-emerald-400">&ldquo;{String(s.proposedFix.proposedValue)}&rdquo;</span>
       </div>
       <div className="flex gap-2">
         <button
@@ -43,7 +42,7 @@ function SuggestionCard({ s, onAccept, onDismiss }: {
         </button>
         <button
           onClick={onDismiss}
-          className="rounded-md px-2.5 py-1 text-[11px] text-zinc-400 hover:text-zinc-200"
+          className="rounded-md px-2.5 py-1 text-[11px] text-ink-secondary hover:text-ink"
         >
           Dismiss
         </button>
@@ -57,24 +56,24 @@ function ConfirmationCard({ c, onDismiss }: {
   onDismiss: () => void;
 }) {
   return (
-    <div className="rounded-md border border-zinc-800 bg-zinc-900/50 p-3">
+    <div className="rounded-md border border-edge bg-surface-alt p-3">
       <div className="mb-2 flex items-center gap-2">
         <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${confidenceColor(c.confidence)}`}>
           {Math.round(c.confidence * 100)}%
         </span>
-        <span className={`text-xs ${c.confirmed ? "text-emerald-400" : "text-red-400"}`}>
+        <span className={`text-xs ${c.confirmed ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400"}`}>
           {c.confirmed ? "Match confirmed" : "Not a match"}
         </span>
       </div>
-      <p className="mb-2 text-xs text-zinc-300">{c.reasoning}</p>
+      <p className="mb-2 text-xs text-ink-secondary">{c.reasoning}</p>
       {c.suggestedCanonicalName && (
-        <div className="mb-2 text-xs text-zinc-400">
-          Canonical name: <span className="text-zinc-200">{c.suggestedCanonicalName}</span>
+        <div className="mb-2 text-xs text-ink-secondary">
+          Canonical name: <span className="text-ink">{c.suggestedCanonicalName}</span>
         </div>
       )}
       <button
         onClick={onDismiss}
-        className="rounded-md px-2.5 py-1 text-[11px] text-zinc-400 hover:text-zinc-200"
+        className="rounded-md px-2.5 py-1 text-[11px] text-ink-secondary hover:text-ink"
       >
         Dismiss
       </button>
@@ -95,8 +94,6 @@ export function AgentPanel() {
   const mismatches = useDocumentStore((s) => s.mismatches);
   const crossRefs = useDocumentStore((s) => s.crossRefs);
   const applyChange = useDocumentStore((s) => s.applyChange);
-
-  const [expanded, setExpanded] = useState(true);
 
   if (!available || documents.length === 0) return null;
 
@@ -125,65 +122,57 @@ export function AgentPanel() {
   };
 
   return (
-    <div className="border-t border-zinc-800">
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="flex w-full items-center justify-between px-6 py-2.5 text-sm text-violet-400 hover:bg-zinc-900/50"
-      >
-        <span className="flex items-center gap-2">
-          <span className="inline-block h-2 w-2 rounded-full bg-violet-500" />
-          Agent
-          {hasContent && (
-            <span className="text-xs text-zinc-500">
-              {suggestions.length + confirmations.length} result{suggestions.length + confirmations.length !== 1 ? "s" : ""}
-            </span>
-          )}
-        </span>
-        <span className="text-zinc-600">{expanded ? "collapse" : "expand"}</span>
-      </button>
+    <div>
+      <div className="flex items-center gap-2 px-6 py-2.5 text-sm text-violet-600 dark:text-violet-400">
+        <span className="inline-block h-2 w-2 rounded-full bg-violet-500" />
+        Agent
+        {hasContent && (
+          <span className="text-xs text-ink-muted">
+            {suggestions.length + confirmations.length} result{suggestions.length + confirmations.length !== 1 ? "s" : ""}
+          </span>
+        )}
+      </div>
 
-      {expanded && (
-        <div className="border-t border-zinc-800 px-6 py-3">
-          <div className="mb-3 flex gap-2">
+      <div className="px-6 pb-3">
+        <div className="mb-3 flex gap-2">
+          <button
+            onClick={handleRequestSuggestions}
+            disabled={loading || mismatches.length === 0}
+            className="rounded-md border border-violet-600 px-3 py-1.5 text-xs font-medium text-violet-700 transition-colors hover:border-violet-500 hover:text-violet-600 disabled:opacity-40 dark:border-violet-700 dark:text-violet-300 dark:hover:border-violet-500 dark:hover:text-violet-200"
+          >
+            {loading ? "Analyzing..." : "Analyze Mismatches"}
+          </button>
+          {hasFuzzy && (
             <button
-              onClick={handleRequestSuggestions}
-              disabled={loading || mismatches.length === 0}
-              className="rounded-md border border-violet-700 px-3 py-1.5 text-xs font-medium text-violet-300 transition-colors hover:border-violet-500 hover:text-violet-200 disabled:opacity-40"
+              onClick={handleConfirmMatches}
+              disabled={loading}
+              className="rounded-md border border-violet-600 px-3 py-1.5 text-xs font-medium text-violet-700 transition-colors hover:border-violet-500 hover:text-violet-600 disabled:opacity-40 dark:border-violet-700 dark:text-violet-300 dark:hover:border-violet-500 dark:hover:text-violet-200"
             >
-              {loading ? "Analyzing..." : "Analyze Mismatches"}
+              {loading ? "Confirming..." : "Confirm Fuzzy Matches"}
             </button>
-            {hasFuzzy && (
-              <button
-                onClick={handleConfirmMatches}
-                disabled={loading}
-                className="rounded-md border border-violet-700 px-3 py-1.5 text-xs font-medium text-violet-300 transition-colors hover:border-violet-500 hover:text-violet-200 disabled:opacity-40"
-              >
-                {loading ? "Confirming..." : "Confirm Fuzzy Matches"}
-              </button>
-            )}
-          </div>
-
-          {hasContent && (
-            <div className="max-h-64 space-y-2 overflow-auto">
-              {suggestions.map((s) => (
-                <SuggestionCard
-                  key={s.mismatchId}
-                  s={s}
-                  onAccept={() => handleAccept(s)}
-                  onDismiss={() => removeSuggestion(s.mismatchId)}
-                />
-              ))}
-              {confirmations.map((c) => (
-                <ConfirmationCard
-                  key={c.crossRefId}
-                  c={c}
-                  onDismiss={() => removeConfirmation(c.crossRefId)}
-                />
-              ))}
-            </div>
           )}
         </div>
-      )}
+
+        {hasContent && (
+          <div className="space-y-2 overflow-auto">
+            {suggestions.map((s) => (
+              <SuggestionCard
+                key={s.mismatchId}
+                s={s}
+                onAccept={() => handleAccept(s)}
+                onDismiss={() => removeSuggestion(s.mismatchId)}
+              />
+            ))}
+            {confirmations.map((c) => (
+              <ConfirmationCard
+                key={c.crossRefId}
+                c={c}
+                onDismiss={() => removeConfirmation(c.crossRefId)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

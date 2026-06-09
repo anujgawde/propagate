@@ -8,6 +8,9 @@ const ENGINE_URL = process.env.NEXT_PUBLIC_ENGINE_URL ?? "http://localhost:3001"
 export function UploadZone() {
   const inputRef = useRef<HTMLInputElement>(null);
   const addDocument = useDocumentStore((s) => s.addDocument);
+  const setGraphState = useDocumentStore((s) => s.setGraphState);
+  const documents = useDocumentStore((s) => s.documents);
+  const clearAll = useDocumentStore((s) => s.clearAll);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,8 +33,11 @@ export function UploadZone() {
           throw new Error(`Upload failed: ${res.statusText}`);
         }
 
-        const { envelope } = await res.json();
+        const { envelope, graph } = await res.json();
         addDocument(envelope);
+        if (graph) {
+          setGraphState(graph.crossRefs, graph.mismatches);
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed");
@@ -41,9 +47,18 @@ export function UploadZone() {
     }
   }
 
+  async function handleReset() {
+    try {
+      await fetch(`${ENGINE_URL}/api/reset`, { method: "POST" });
+      clearAll();
+    } catch {
+      setError("Failed to reset");
+    }
+  }
+
   return (
     <div className="flex items-center gap-3">
-      {error && <span className="text-sm text-red-400">{error}</span>}
+      {error && <span className="text-sm text-red-500">{error}</span>}
       <input
         ref={inputRef}
         type="file"
@@ -52,10 +67,18 @@ export function UploadZone() {
         className="hidden"
         onChange={(e) => handleFiles(e.target.files)}
       />
+      {documents.length > 0 && (
+        <button
+          onClick={handleReset}
+          className="rounded-md px-3 py-1.5 text-sm text-ink-faint transition-colors hover:text-red-500"
+        >
+          Clear
+        </button>
+      )}
       <button
         onClick={() => inputRef.current?.click()}
         disabled={uploading}
-        className="rounded-md border border-zinc-700 px-4 py-1.5 text-sm text-zinc-400 transition-colors hover:border-zinc-500 hover:text-zinc-200 disabled:opacity-50"
+        className="rounded-md border border-edge px-4 py-1.5 text-sm text-ink-secondary transition-colors hover:border-ink-faint hover:text-ink disabled:opacity-50"
       >
         {uploading ? "Uploading..." : "Upload documents"}
       </button>

@@ -1,1 +1,42 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --color-surface: var(--c-surface);
+  --color-surface-alt: var(--c-surface-alt);
+  --color-surface-inset: var(--c-surface-inset);
+  --color-surface-hover: var(--c-surface-hover);
+  --color-edge: var(--c-edge);
+  --color-edge-subtle: var(--c-edge-subtle);
+  --color-ink: var(--c-ink);
+  --color-ink-secondary: var(--c-ink-secondary);
+  --color-ink-muted: var(--c-ink-muted);
+  --color-ink-faint: var(--c-ink-faint);
+}
+
+:root {
+  --c-surface: #ffffff;
+  --c-surface-alt: #fafafa;
+  --c-surface-inset: #f4f4f5;
+  --c-surface-hover: #e4e4e7;
+  --c-edge: #d4d4d8;
+  --c-edge-subtle: #e4e4e7;
+  --c-ink: #18181b;
+  --c-ink-secondary: #52525b;
+  --c-ink-muted: #71717a;
+  --c-ink-faint: #a1a1aa;
+}
+
+.dark {
+  --c-surface: #09090b;
+  --c-surface-alt: #18181b;
+  --c-surface-inset: #27272a;
+  --c-surface-hover: #3f3f46;
+  --c-edge: #27272a;
+  --c-edge-subtle: #3f3f46;
+  --c-ink: #f4f4f5;
+  --c-ink-secondary: #a1a1aa;
+  --c-ink-muted: #71717a;
+  --c-ink-faint: #52525b;
+}

@@ -35,11 +35,11 @@ interface SheetRow {
 const rooms: RoomRow[] = [
   { number: "100", name: "RECEPTION", floorFinish: "VINYL PLANK", wallFinish: "PAINTED GWB", ceilingType: "ACT 2x4", area: 250, notes: "" },
   { number: "101", name: "WAITING", floorFinish: "VINYL PLANK", wallFinish: "PAINTED GWB", ceilingType: "ACT 2x4", area: 320, notes: "" },
-  { number: "102", name: "OP 1", floorFinish: "EPOXY", wallFinish: "FRP PANEL", ceilingType: "GWB", area: 120, notes: "Seeded: IFC says OPERATORY 1" },
+  { number: "102", name: "OP 1", floorFinish: "EPOXY", wallFinish: "FRP PANEL", ceilingType: "GWB", area: 120, notes: "" },
   { number: "103", name: "OPERATORY 2", floorFinish: "EPOXY", wallFinish: "FRP PANEL", ceilingType: "GWB", area: 120, notes: "" },
   { number: "104", name: "OPERATORY 3", floorFinish: "EPOXY", wallFinish: "FRP PANEL", ceilingType: "GWB", area: 115, notes: "" },
   { number: "105", name: "OPERATORY 4", floorFinish: "EPOXY", wallFinish: "FRP PANEL", ceilingType: "GWB", area: 115, notes: "" },
-  { number: "106", name: "STERILIZATION", floorFinish: "EPOXY", wallFinish: "FRP PANEL", ceilingType: "GWB", area: 165, notes: "Seeded: IFC says 180 SF" },
+  { number: "106", name: "STERILIZATION", floorFinish: "EPOXY", wallFinish: "FRP PANEL", ceilingType: "GWB", area: 165, notes: "" },
   { number: "107", name: "IMAGING", floorFinish: "VINYL SHEET", wallFinish: "LEAD-LINED GWB", ceilingType: "GWB", area: 140, notes: "" },
   { number: "108", name: "CONSULTATION", floorFinish: "CARPET TILE", wallFinish: "PAINTED GWB", ceilingType: "ACT 2x4", area: 160, notes: "" },
   { number: "109", name: "LAB", floorFinish: "EPOXY", wallFinish: "FRP PANEL", ceilingType: "GWB", area: 200, notes: "" },
@@ -142,7 +142,7 @@ async function generateDoorSchedule() {
 
   styleHeader(ws);
   await wb.xlsx.writeFile(join(__dirname, "door-schedule.xlsx"));
-  console.log("Generated door-schedule.xlsx (19 rows, D-108 missing)");
+  console.log("Generated door-schedule.xlsx");
 }
 
 async function generateSheetIndex() {
@@ -162,7 +162,7 @@ async function generateSheetIndex() {
 
   styleHeader(ws);
   await wb.xlsx.writeFile(join(__dirname, "sheet-index.xlsx"));
-  console.log("Generated sheet-index.xlsx (A102 references X-RAY = seeded mismatch)");
+  console.log("Generated sheet-index.xlsx");
 }
 
 async function main() {

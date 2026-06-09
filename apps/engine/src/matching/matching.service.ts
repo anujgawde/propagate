@@ -37,7 +37,7 @@ export class MatchingService {
     const fuzzyRefs: CrossRef[] = [];
 
     for (const el of elements) {
-      const matches = await this.lance.findSimilar(el.text, el.docId, 0.4);
+      const matches = await this.lance.findSimilar(el.text, el.docId, 0.6);
 
       for (const match of matches) {
         const pairKey = [el.docId, el.elementPath, match.docId, match.elementPath]
@@ -45,6 +45,7 @@ export class MatchingService {
           .join("|");
         if (seen.has(pairKey)) continue;
         if (coveredPairs.has(this.coveredKey(el.docId, el.elementPath, match.docId, match.elementPath))) continue;
+        if (this.hasDifferentNumbers(el.text, match.text)) continue;
         seen.add(pairKey);
 
         const refType = this.inferRefType(el.elementPath, match.elementPath);
@@ -126,6 +127,15 @@ export class MatchingService {
     path2: string,
   ): string {
     return [docId1, path1, docId2, path2].sort().join("|");
+  }
+
+  private hasDifferentNumbers(a: string, b: string): boolean {
+    const numsA = a.match(/\d+/g);
+    const numsB = b.match(/\d+/g);
+    if (!numsA || !numsB) return false;
+    const setA = new Set(numsA);
+    const setB = new Set(numsB);
+    return ![...setA].some((n) => setB.has(n));
   }
 
   private inferRefType(

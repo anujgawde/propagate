@@ -8,10 +8,10 @@ export function AgentStatusBadge() {
   if (available === null) return null;
 
   return (
-    <div className="flex items-center gap-2 text-xs text-zinc-400">
+    <div className="flex items-center gap-2 text-xs text-ink-secondary">
       <span
         className={`inline-block h-2 w-2 rounded-full ${
-          available ? "bg-emerald-500" : "bg-zinc-600"
+          available ? "bg-emerald-500" : "bg-ink-faint"
         }`}
       />
       <span>{available ? "Agent online" : "Agent offline"}</span>

@@ -7,23 +7,30 @@ import { UploadZone } from "@/components/upload/upload-zone";
 import { PropagationPrompt } from "@/components/propagation-prompt/propagation-prompt";
 import { AgentStatusBadge } from "@/components/agent/agent-status-badge";
 import { AgentPanel } from "@/components/agent/agent-panel";
+import { ResizableBottomPanel } from "@/components/layout/resizable-bottom-panel";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { useSocket } from "@/hooks/use-socket";
+import { useDocumentStore } from "@/store/documents";
 
 export default function Home() {
   useSocket();
+  const focusMismatch = useDocumentStore((s) => s.focusMismatch);
 
   return (
     <div className="flex h-screen flex-col">
-      <header className="flex items-center justify-between border-b border-zinc-800 px-6 py-3">
+      <header className="flex items-center justify-between border-b border-edge px-6 py-3">
         <div className="flex items-center gap-4">
           <h1 className="text-lg font-semibold tracking-tight">Propagate</h1>
           <AgentStatusBadge />
         </div>
-        <UploadZone />
+        <div className="flex items-center gap-3">
+          <ThemeToggle />
+          <UploadZone />
+        </div>
       </header>
 
-      <main className="flex flex-1 overflow-hidden">
-        <div className="flex-1 border-r border-zinc-800 p-4">
+      <main onClick={() => focusMismatch(null)} className="flex flex-1 overflow-hidden">
+        <div className="flex-1 border-r border-edge p-4">
           <FloorPlanViewer />
         </div>
         <div className="flex-1 p-4">
@@ -32,8 +39,10 @@ export default function Home() {
       </main>
 
       <PropagationPrompt />
-      <AgentPanel />
-      <ImpactBar />
+      <ResizableBottomPanel>
+        <AgentPanel />
+        <ImpactBar />
+      </ResizableBottomPanel>
     </div>
   );
 }

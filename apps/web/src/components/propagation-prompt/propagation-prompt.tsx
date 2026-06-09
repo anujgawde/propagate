@@ -37,8 +37,8 @@ export function PropagationPrompt() {
   };
 
   return (
-    <div className="fixed bottom-16 left-1/2 z-50 -translate-x-1/2 rounded-lg border border-zinc-700 bg-zinc-900 p-4 shadow-xl">
-      <div className="mb-3 text-sm font-medium text-zinc-200">
+    <div className="fixed bottom-16 left-1/2 z-50 -translate-x-1/2 rounded-lg border border-edge bg-surface-alt p-4 shadow-xl">
+      <div className="mb-3 text-sm font-medium text-ink">
         Propagate to {pendingPropagation.length} other location
         {pendingPropagation.length !== 1 ? "s" : ""}?
       </div>
@@ -48,14 +48,14 @@ export function PropagationPrompt() {
             key={target.crossRefId}
             className="flex items-center gap-2 text-xs"
           >
-            <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-zinc-400">
+            <span className="rounded bg-surface-inset px-1.5 py-0.5 text-ink-secondary">
               {docName(target.docId)}
             </span>
-            <span className="text-zinc-500">
+            <span className="text-ink-muted">
               &ldquo;{String(target.currentValue)}&rdquo;
             </span>
-            <span className="text-zinc-600">&rarr;</span>
-            <span className="text-emerald-400">
+            <span className="text-ink-faint">&rarr;</span>
+            <span className="text-emerald-600 dark:text-emerald-400">
               &ldquo;{String(target.proposedValue)}&rdquo;
             </span>
           </div>
@@ -70,7 +70,7 @@ export function PropagationPrompt() {
         </button>
         <button
           onClick={handleDismiss}
-          className="rounded-md px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200"
+          className="rounded-md px-3 py-1.5 text-xs text-ink-secondary hover:text-ink"
         >
           Dismiss
         </button>

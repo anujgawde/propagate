@@ -90,6 +90,12 @@ export class ApiController {
     return result;
   }
 
+  @Post("reset")
+  async reset() {
+    await this.graphService.reset();
+    return { status: "ok" };
+  }
+
   @Post("propagate/preview")
   previewPropagation(@Body() change: Change) {
     return this.graphService.previewPropagation(change);

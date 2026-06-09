@@ -76,11 +76,12 @@ function matchRooms(
 
         const scheduleName = String(row.values["name"] ?? "");
         if (room.name && scheduleName && room.name !== scheduleName) {
+          const drift = detectNameDrift(room.name, scheduleName);
           refs.push({
             id: `${fp.id}:room:${room.id}:name→${schedule.id}:${row.id}`,
             type: "room-name",
-            matchMethod: "exact",
-            confidence: 1.0,
+            matchMethod: drift.isDrift ? "fuzzy" : "exact",
+            confidence: drift.confidence,
             source: {
               docId: fp.id,
               elementPath: `rooms.${room.id}.name`,
@@ -238,4 +239,27 @@ function matchDoors(
   }
 
   return refs;
+}
+
+function detectNameDrift(
+  a: string,
+  b: string,
+): { isDrift: boolean; confidence: number } {
+  const wordsA = a.toUpperCase().split(/\s+/);
+  const wordsB = b.toUpperCase().split(/\s+/);
+  const [shorter, longer] =
+    wordsA.length <= wordsB.length ? [wordsA, wordsB] : [wordsB, wordsA];
+
+  let prefixMatches = 0;
+  for (const ws of shorter) {
+    if (longer.some((wl) => wl.startsWith(ws) || ws.startsWith(wl))) {
+      prefixMatches++;
+    }
+  }
+
+  const ratio = prefixMatches / Math.max(shorter.length, longer.length);
+  if (ratio >= 0.5) {
+    return { isDrift: true, confidence: 0.5 + ratio * 0.3 };
+  }
+  return { isDrift: false, confidence: 1.0 };
 }

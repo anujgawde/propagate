@@ -97,6 +97,12 @@ export class GraphService implements OnModuleInit {
     return this.rebuild();
   }
 
+  async reset(): Promise<void> {
+    this.documents = [];
+    this.fuzzyRefs = [];
+    await this.redis.del(DOCUMENTS_KEY);
+  }
+
   private async refreshFuzzyRefs(): Promise<void> {
     await this.matching.indexElements(this.documents);
     const exactRefs = buildGraph(this.documents);
