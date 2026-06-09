@@ -65,7 +65,7 @@ export function ImpactBar() {
 
   return (
     <div>
-      <div className="flex items-center justify-between px-6 py-2 text-sm text-amber-600 dark:text-amber-400">
+      <div className="flex items-center justify-between px-6 pt-1 pb-2 text-sm text-amber-600 dark:text-amber-400">
         <span>
           {mismatches.length} mismatch{mismatches.length !== 1 ? "es" : ""}{" "}
           detected

@@ -39,7 +39,16 @@ export function FloorPlanViewer() {
   const floorPlan = fpDoc.document as FloorPlan;
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="relative flex h-full flex-col">
+      {selectedElementId && (
+        <div className="absolute top-8 left-2 right-2 z-10">
+          <RoomEditPanel
+            docId={fpDoc.id}
+            floorPlan={floorPlan}
+            roomId={selectedElementId}
+          />
+        </div>
+      )}
       <FloorPlanSVG
         docId={fpDoc.id}
         floorPlan={floorPlan}
@@ -49,13 +58,6 @@ export function FloorPlanViewer() {
         focusedMismatchId={focusedMismatchId}
         onSelectElement={selectElement}
       />
-      {selectedElementId && (
-        <RoomEditPanel
-          docId={fpDoc.id}
-          floorPlan={floorPlan}
-          roomId={selectedElementId}
-        />
-      )}
     </div>
   );
 }
@@ -121,7 +123,7 @@ function RoomEditPanel({
   ];
 
   return (
-    <div className="mt-2 rounded-lg border border-edge bg-surface-alt p-3">
+    <div className="rounded-lg border border-edge bg-surface-alt p-3 shadow-md">
       <div className="mb-2 text-xs font-medium text-ink-muted uppercase tracking-wider">
         Edit Room {room.number}
       </div>

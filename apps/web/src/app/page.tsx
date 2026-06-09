@@ -8,6 +8,7 @@ import { PropagationPrompt } from "@/components/propagation-prompt/propagation-p
 import { AgentStatusBadge } from "@/components/agent/agent-status-badge";
 import { AgentPanel } from "@/components/agent/agent-panel";
 import { ResizableBottomPanel } from "@/components/layout/resizable-bottom-panel";
+import { ResizableSplit } from "@/components/layout/resizable-split";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { useSocket } from "@/hooks/use-socket";
 import { useDocumentStore } from "@/store/documents";
@@ -30,12 +31,10 @@ export default function Home() {
       </header>
 
       <main onClick={() => focusMismatch(null)} className="flex flex-1 overflow-hidden">
-        <div className="flex-1 border-r border-edge p-4">
-          <FloorPlanViewer />
-        </div>
-        <div className="flex-1 p-4">
-          <ScheduleTable />
-        </div>
+        <ResizableSplit
+          left={<FloorPlanViewer />}
+          right={<ScheduleTable />}
+        />
       </main>
 
       <PropagationPrompt />
